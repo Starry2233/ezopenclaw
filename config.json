@@ -1,4 +1,5 @@
 {
     "nvm_url": "https://gh.felicity.ac.cn/https://github.com/coreybutler/nvm-windows/releases/download/1.2.2/nvm-setup.exe",
-    "nodejs_url": "https://npmmirror.com/mirrors/node/v24.14.0/node-v24.14.0-x64.msi"
+    "nodejs_url": "https://npmmirror.com/mirrors/node/v24.14.0/node-v24.14.0-x64.msi",
+    "git_url": "https://gh.felicity.ac.cn/https://github.com/git-for-windows/git/releases/download/v2.53.0.windows.1/Git-2.53.0-64-bit.exe"
 }

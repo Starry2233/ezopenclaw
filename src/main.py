@@ -218,6 +218,71 @@ class OpenClawInstall(object):
         print(f"{SUCCESS}Node.js installed successfully (Node安装成功)")
         return True
 
+    def install_git_legacy(self) -> bool:
+        print(f"{INFO}Starting install Git (开始安装Git)")
+        self._download_file(self._get_config("git_url"), os.path.join(self.target_path, ".temp", "git-installer.exe"))
+        result = subprocess.run(
+            [
+                os.path.join(self.target_path, ".temp", "git-installer.exe"),
+                "/VERYSILENT",
+                "/SUPPRESSMSGBOXES",
+                "/NORESTART",
+                "/SP-",
+            ],
+            shell=False,
+            text=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE
+        )
+        if result.returncode != 0:
+            print(f"{ERROR}Failed to install Git (安装Git失败): The process returned non-zero code {str(result.returncode)}, STDERR:")
+            print(result.stderr)
+            return False
+        print(f"{SUCCESS}Git installed successfully (Git安装成功)")
+        return True
+
+    def install_git_winget(self) -> bool:
+        print(f"{INFO}Checking WinGet... {Fore.LIGHTBLACK_EX}[正在检查WinGet...]{Fore.RESET}")
+        winget_location = subprocess.run(["cmd.exe", "/c", "where", "winget"], shell=False, text=True, stdout=subprocess.PIPE).stdout.strip()
+        if winget_location == "":
+            print(f"{ERROR}WinGet not found. Try: use other installation method {Fore.LIGHTBLACK_EX}[找不到WinGet, 请尝试使用其他安装方式]{Fore.RESET}")
+            return False
+        install_command = [
+            "winget", "install",
+            "--id", "Git.Git",
+            "--silent",
+            "--accept-package-agreements",
+            "--accept-source-agreements"
+        ]
+        try:
+            subprocess.run(install_command, text=True, check=True)
+        except Exception:
+            print(f"{ERROR}Failed to install Git (Git安装失败)")
+            return False
+        print(f"{SUCCESS}Git installed successfully (Git安装成功)")
+        return True
+
+    def ensure_git_installed(self) -> bool:
+        git_executable = self._detect_executable("git")
+        if git_executable is not None:
+            print(f"{SUCCESS}Git already exists, skip installation (检测到Git已存在, 跳过安装)")
+            return True
+
+        print(f"{INFO}Git not found, preparing pre-installation (未检测到Git, 准备提前安装)")
+        if self.install_mode == 1:
+            if not self.install_git_winget():
+                return False
+        else:
+            if not self.install_git_legacy():
+                return False
+
+        self._refresh_env()
+        git_executable = self._detect_executable("git")
+        if git_executable is None:
+            print(f"{ERROR}Git installation verification failed (Git安装校验失败)")
+            return False
+        return True
+
     def npm_install_openclaw(self):
         print(f"{INFO}The dawn of victory is at hand (胜利的曙光即将到来)")
         print(f"{INFO}Please select a package manager (请选择包管理器):")
@@ -246,7 +311,7 @@ class OpenClawInstall(object):
                 try:
                     subprocess.run(["cnpm", "install", "-g", "openclaw@latest"], shell=True, text=True, check=True)
                     with open(os.path.join(os.environ["USERPROFILE"], "Desktop", "OpenClaw.cmd"), "w") as f:
-                        f.write("@echo off & openclaw")
+                        f.write("@echo off & npx openclaw")
                         
                 except Exception:
                     print(f"{ERROR}Failed to install OpenClaw (安装OpenClaw失败)")
@@ -312,6 +377,10 @@ class OpenClawInstall(object):
                 print(ERROR + "Invaild Input (输入错误)")
                 continue
             break
+
+        if not self.ensure_git_installed():
+            sys.exit(1)
+
         if not self.nvm:
             print(WARN + "You have chosen not to install NVM, which may cause conflict issues (你已选择不安装NVM, 这可能会导致冲突问题)")
             match self.install_mode:
