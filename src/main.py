@@ -311,7 +311,7 @@ class OpenClawInstall(object):
                 try:
                     subprocess.run(["cnpm", "install", "-g", "openclaw@latest"], shell=True, text=True, check=True)
                     with open(os.path.join(os.environ["USERPROFILE"], "Desktop", "OpenClaw.cmd"), "w") as f:
-                        f.write("@echo off & npx openclaw onboard")
+                        f.write("@echo off & npx openclaw gateway")
                         
                 except Exception:
                     print(f"{ERROR}Failed to install OpenClaw (安装OpenClaw失败)")
@@ -327,7 +327,7 @@ class OpenClawInstall(object):
                 try:
                     subprocess.run(["pnpm", "install", "-g", "openclaw@latest"], shell=True, text=True, check=True)
                     with open(os.path.join(os.environ["USERPROFILE"], "Desktop", "OpenClaw.cmd"), "w") as f:
-                        f.write("@echo off & npx openclaw onboard")
+                        f.write("@echo off & npx openclaw gateway")
                         
                 except Exception:
                     print(f"{ERROR}Failed to install OpenClaw (安装OpenClaw失败)")
@@ -338,7 +338,7 @@ class OpenClawInstall(object):
                 try:
                     subprocess.run(["npm", "install", "-g", "openclaw@latest"], shell=True, text=True, check=True)
                     with open(os.path.join(os.environ["USERPROFILE"], "Desktop", "OpenClaw.cmd"), "w") as f:
-                        f.write("@echo off & npx openclaw onboard")
+                        f.write("@echo off & npx openclaw gateway")
                         
                 except Exception:
                     print(f"{ERROR}Failed to install OpenClaw (安装OpenClaw失败)")
@@ -431,6 +431,7 @@ if __name__ == "__main__":
     init(autoreset=True, convert=True)
     openclaw_installer = OpenClawInstall(path)
     openclaw_installer.install_openclaw()
+    subprocess.run(["npx", "openclaw", "onboard"])
     input("Press any key to continue...")
     sys.exit(0)
     
