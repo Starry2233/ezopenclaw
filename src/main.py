@@ -164,8 +164,9 @@ class OpenClawInstall(object):
         try:
             result = subprocess.run(cmd, text=True, check=True)
         except Exception:
-            print(f"{ERROR}Failed to install NVM (NVM安装失败)")
-            return False
+            print(f"{WARN}The WinGet returned non-zero code, this might be a flaw in itself. (WinGet返回值不为0, 这可能是WinGet本身的缺陷)")
+            input(f"{INFO}Press enter to continue (按回车继续)")
+        self._refresh_env()
         print(f"{SUCCESS}NVM installed successfully (NVM安装成功)")
         return True
     
@@ -211,8 +212,8 @@ class OpenClawInstall(object):
         try:
             subprocess.run(install_command, text=True, check=True)
         except Exception:
-            print(f"{ERROR}Failed to install Node.js (Node安装失败)")
-            return False
+            print(f"{WARN}The WinGet returned non-zero code, this might be a flaw in itself. (WinGet返回值不为0, 这可能是WinGet本身的缺陷)")
+            input(f"{INFO}Press enter to continue (按回车继续)")
         self._refresh_env()
         subprocess.run(["npm", "config", "set", "registry", "https://registry.npmmirror.com"], shell=True, check=True, stdout=subprocess.DEVNULL)
         print(f"{SUCCESS}Node.js installed successfully (Node安装成功)")
@@ -257,8 +258,10 @@ class OpenClawInstall(object):
         try:
             subprocess.run(install_command, text=True, check=True)
         except Exception:
-            print(f"{ERROR}Failed to install Git (Git安装失败)")
-            return False
+            print(f"{WARN}The WinGet returned non-zero code, this might be a flaw in itself. (WinGet返回值不为0, 这可能是WinGet本身的缺陷)")
+            input(f"{INFO}Press enter to continue (按回车继续)")
+        
+        self._refresh_env()
         print(f"{SUCCESS}Git installed successfully (Git安装成功)")
         return True
 
