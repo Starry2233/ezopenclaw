@@ -13,6 +13,8 @@ import getpass
 import json
 import ctypes
 import winreg
+import shutil
+import pylnk3
 
 
 INFOX = r"""
@@ -116,7 +118,45 @@ class OpenClawInstall(object):
 
         sys.stdout.write(f"\r{SUCCESS}Downloaded {dst}\n")
         sys.stdout.flush()
-    
+
+    @staticmethod
+    def add_to_startup(app_name, command) -> bool | Exception:
+        key_path = r"Software\Microsoft\Windows\CurrentVersion\Run"  
+        try:
+            key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, key_path, 0, winreg.KEY_SET_VALUE)
+            winreg.SetValueEx(key, app_name, 0, winreg.REG_SZ, command)
+            winreg.CloseKey(key)
+            return True
+        except Exception as e:
+            return e
+        
+    @staticmethod
+    def create_start_menu_pylnk(app_group_name, app_name, target_exe, args=""):
+        base_path = os.path.join(
+            os.environ['APPDATA'], 
+            'Microsoft', 'Windows', 'Start Menu', 'Programs'
+        )
+        
+        app_folder = os.path.join(base_path, app_group_name)
+        if not os.path.exists(app_folder):
+            os.makedirs(app_folder)
+        
+        lnk_path = '"' + os.path.join(app_folder, f"{app_name}.lnk") + '"'
+        lnk = pylnk3.Lnk()
+        
+        lnk.path = target_exe
+        lnk.arguments = args
+        lnk.work_dir = os.path.dirname(target_exe)
+        lnk.description = f"Launch {app_name}"
+        system_root = os.environ.get("SystemRoot", r"C:\Windows")
+        lnk.icon = os.path.join(system_root, "System32", "imageres.dll")
+        lnk.icon_index = 67
+
+        lnk.link_flags.set_flags('RunAsUser')
+        lnk.link_flags.set_flags('HasExpString')
+
+        lnk.save(lnk_path)
+        
     def install_nvm_legacy(self) -> bool:
         url = self._get_config("nvm_url")
         if not os.path.exists(os.path.join(self.target_path, ".temp")):
@@ -322,7 +362,7 @@ class OpenClawInstall(object):
                 try:
                     subprocess.run(["cnpm", "install", "-g", "openclaw@latest"], shell=True, text=True, check=True)
                     with open(os.path.join(os.environ["USERPROFILE"], "Desktop", "OpenClaw.cmd"), "w") as f:
-                        f.write("@echo off & npx openclaw gateway")
+                        f.write("@echo off & npx openclaw dashboard")
                         
                 except Exception:
                     print(f"{ERROR}Failed to install OpenClaw (安装OpenClaw失败)")
@@ -338,7 +378,7 @@ class OpenClawInstall(object):
                 try:
                     subprocess.run(["pnpm", "install", "-g", "openclaw@latest"], shell=True, text=True, check=True)
                     with open(os.path.join(os.environ["USERPROFILE"], "Desktop", "OpenClaw.cmd"), "w") as f:
-                        f.write("@echo off & npx openclaw gateway")
+                        f.write("@echo off & npx openclaw dashboard")
                         
                 except Exception:
                     print(f"{ERROR}Failed to install OpenClaw (安装OpenClaw失败)")
@@ -349,12 +389,13 @@ class OpenClawInstall(object):
                 try:
                     subprocess.run(["npm", "install", "-g", "openclaw@latest"], shell=True, text=True, check=True)
                     with open(os.path.join(os.environ["USERPROFILE"], "Desktop", "OpenClaw.cmd"), "w") as f:
-                        f.write("@echo off & npx openclaw gateway")
+                        f.write("@echo off & npx openclaw dashboard")
                         
                 except Exception:
                     print(f"{ERROR}Failed to install OpenClaw (安装OpenClaw失败)")
                     return False
                 print(f"{SUCCESS}Installation completed successfully, the stage is set. {Fore.LIGHTBLACK_EX}[跨越山海, 终见曙光 OpenClaw安装成功! ]{Fore.RESET}")
+                print(f"{INFO}Running init... {Fore.LIGHTBLACK_EX}[正在初始化OpenClaw...]{Fore.RESET}")
                 return True
                 
 
@@ -420,7 +461,14 @@ class OpenClawInstall(object):
                         if not self.npm_install_openclaw(): sys.exit(1)
                     else:
                         sys.exit(1)
-
+            
+        os.makedirs(os.path.join(os.environ["APPDATA"], "OpenClaw"), exist_ok=True)
+        with open(os.path.join(os.environ["APPDATA"], "OpenClaw", "gateway.ps1"), "w", encoding="utf-8") as f:
+            f.write('Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process\r\n. npx.ps1 openclaw gateway')
+            self.add_to_startup("OpenClawGateway", "powershell.exe -ExecutionPolicy Bypass -WindowStyle Hidden -File \"" + os.path.join(os.environ["APPDATA"], "OpenClaw", "gateway.ps1") + "\"")
+            self.create_start_menu_pylnk("OpenClaw", "OpenClaw Gateway", "powershell.exe", f'-ExecutionPolicy Bypass -File "{os.path.join(os.environ["APPDATA"], "OpenClaw", "gateway.ps1")}"')
+            self.create_start_menu_pylnk("OpenClaw", "OpenClaw Dashboard", "powershell.exe", "-ExecutionPolicy Bypass -WindowStyle Hidden -File npx.ps1 openclaw dashboard")
+            
 def is_path_like(s):
     try:
         p = PurePath(s)
