@@ -6,11 +6,11 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[],
-    hiddenimports=[],
+    hiddenimports=['charset-normalizer'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=['tkinter', 'tcl', 'this', '_tkinter', 'idlelib', 'pydoc', 'distutils', 'unittest', 'email'],
+    excludes=['tkinter', 'tcl', 'this', '_tkinter', 'idlelib', 'pydoc', 'unittest'],
     noarchive=False,
     optimize=2,
 )

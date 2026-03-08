@@ -482,7 +482,7 @@ class OpenClawInstall(object):
                 self.create_start_menu_pylnk("OpenClaw", "OpenClaw Dashboard", powershell_path, f"-ExecutionPolicy Bypass -WindowStyle Hidden -File {oc_path} dashboard")
             print(f"\n{INFO}Preparing start OpenClaw setup (正在准备启动OpenClaw配置)\n{INFO}Use up/down/right/left to select, enter to choose (使用键盘上下左右来选择, 回车选中) ")
             print(f"{INFO}The first selection please choose 'Yes' (Agree) {Fore.LIGHTBLACK_EX}[第一个选项为用户协议, 请选择Yes以同意使用OpenClaw]{Fore.RESET}")
-            print(f"{INFO}In skill selection, please select 'model-usage' {Fore.LIGHTBLACK_EX}[在让你选择Skill(技能)时, 请选上model-usage]{Fore.RESET}")
+            print(f"{INFO}In skill selection, please select 'mcporter' {Fore.LIGHTBLACK_EX}[在让你选择Skill(技能)时, 请选上mcporter]{Fore.RESET}")
             print(f"{INFO}After finish this, please press Ctrl+C to continue (配置提示完成后, 请按Ctrl+C继续)")
             print(f"{Fore.LIGHTBLACK_EX}[若有任何问题, 请使用翻译软件]{Fore.RESET}")
             while True:

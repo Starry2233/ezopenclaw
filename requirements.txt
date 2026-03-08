@@ -1,3 +1,4 @@
 requests
 colorama
 pylnk3
+charset-normalizer
