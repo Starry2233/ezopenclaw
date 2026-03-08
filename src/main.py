@@ -1,16 +1,4 @@
-INFOX = r"""
- _______    ________   ________   ________   _______    ________    ________   ___        ________   ___       __      
-|\  ___ \  |\_____  \ |\   __  \ |\   __  \ |\  ___ \  |\   ___  \ |\   ____\ |\  \      |\   __  \ |\  \     |\  \    
-\ \   __/|  \|___/  /|\ \  \|\  \\ \  \|\  \\ \   __/| \ \  \\ \  \\ \  \___| \ \  \     \ \  \|\  \\ \  \    \ \  \   
- \ \  \_|/__    /  / / \ \  \\\  \\ \   ____\\ \  \_|/__\ \  \\ \  \\ \  \     \ \  \     \ \   __  \\ \  \  __\ \  \  
-  \ \  \_|\ \  /  /_/__ \ \  \\\  \\ \  \___| \ \  \_|\ \\ \  \\ \  \\ \  \____ \ \  \____ \ \  \ \  \\ \  \|\__\_\  \ 
-   \ \_______\|\________\\ \_______\\ \__\     \ \_______\\ \__\\ \__\\ \_______\\ \_______\\ \__\ \__\\ \____________\
-    \|_______| \|_______| \|_______| \|__|      \|_______| \|__| \|__| \|_______| \|_______| \|__|\|__| \|____________|   Standalone Installer
-    
-    by Starry2233
-                                                                                                                                                                                                                                             
-"""                                                                                                      
-#   EzOpenClaw by Starry2233
+""" EzOpenClaw by Starry2233 """
 
 
 from msiexec import MsiExec
@@ -26,6 +14,19 @@ import json
 import ctypes
 import winreg
 
+
+INFOX = r"""
+ _______    ________   ________   ________   _______    ________    ________   ___        ________   ___       __      
+|\  ___ \  |\_____  \ |\   __  \ |\   __  \ |\  ___ \  |\   ___  \ |\   ____\ |\  \      |\   __  \ |\  \     |\  \    
+\ \   __/|  \|___/  /|\ \  \|\  \\ \  \|\  \\ \   __/| \ \  \\ \  \\ \  \___| \ \  \     \ \  \|\  \\ \  \    \ \  \   
+ \ \  \_|/__    /  / / \ \  \\\  \\ \   ____\\ \  \_|/__\ \  \\ \  \\ \  \     \ \  \     \ \   __  \\ \  \  __\ \  \  
+  \ \  \_|\ \  /  /_/__ \ \  \\\  \\ \  \___| \ \  \_|\ \\ \  \\ \  \\ \  \____ \ \  \____ \ \  \ \  \\ \  \|\__\_\  \ 
+   \ \_______\|\________\\ \_______\\ \__\     \ \_______\\ \__\\ \__\\ \_______\\ \_______\\ \__\ \__\\ \____________\
+    \|_______| \|_______| \|_______| \|__|      \|_______| \|__| \|__| \|_______| \|_______| \|__|\|__| \|____________|   Standalone Installer
+    
+    by Starry2233
+                                                                                                                                                                                                                                             
+"""   
 
 INFO = Fore.LIGHTBLUE_EX + "[INFO]" + Fore.RESET
 WARN = Fore.LIGHTYELLOW_EX + "[WARN]" + Fore.RESET
@@ -161,11 +162,13 @@ class OpenClawInstall(object):
             "--accept-source-agreements",
             "--location", os.path.join(self.target_path, "nvm")
         ]
-        try:
-            result = subprocess.run(cmd, text=True, check=True)
-        except Exception:
-            print(f"{WARN}The WinGet returned non-zero code, this might be a flaw in itself. (WinGet返回值不为0, 这可能是WinGet本身的缺陷)")
-            input(f"{INFO}Press enter to continue (按回车继续)")
+        match subprocess.run(cmd, text=True).returncode:
+            case 0: ...
+            case -1978335212: ...
+            case 3010: ...
+            case _ as returncode:
+                print(f"{WARN}The WinGet returned non-zero code {returncode} , this might be a flaw in itself. (WinGet返回值不为0, 这可能是WinGet本身的缺陷)")
+                input(f"{INFO}Press enter to continue (按回车继续)")
         self._refresh_env()
         print(f"{SUCCESS}NVM installed successfully (NVM安装成功)")
         return True
@@ -209,11 +212,14 @@ class OpenClawInstall(object):
             "--accept-package-agreements", 
             "--accept-source-agreements"
         ]
-        try:
-            subprocess.run(install_command, text=True, check=True)
-        except Exception:
-            print(f"{WARN}The WinGet returned non-zero code, this might be a flaw in itself. (WinGet返回值不为0, 这可能是WinGet本身的缺陷)")
-            input(f"{INFO}Press enter to continue (按回车继续)")
+        match subprocess.run(install_command, text=True).returncode:
+            case 0: ...
+            case -1978335212: ...
+            case 3010: ...
+            case _ as returncode:
+                print(f"{WARN}The WinGet returned non-zero code {returncode} , this might be a flaw in itself. (WinGet返回值不为0, 这可能是WinGet本身的缺陷)")
+                input(f"{INFO}Press enter to continue (按回车继续)")
+
         self._refresh_env()
         subprocess.run(["npm", "config", "set", "registry", "https://registry.npmmirror.com"], shell=True, check=True, stdout=subprocess.DEVNULL)
         print(f"{SUCCESS}Node.js installed successfully (Node安装成功)")
@@ -255,11 +261,13 @@ class OpenClawInstall(object):
             "--accept-package-agreements",
             "--accept-source-agreements"
         ]
-        try:
-            subprocess.run(install_command, text=True, check=True)
-        except Exception:
-            print(f"{WARN}The WinGet returned non-zero code, this might be a flaw in itself. (WinGet返回值不为0, 这可能是WinGet本身的缺陷)")
-            input(f"{INFO}Press enter to continue (按回车继续)")
+        match subprocess.run(install_command, text=True).returncode:
+            case 0: ...
+            case -1978335212: ...
+            case 3010: ...
+            case _ as returncode:
+                print(f"{WARN}The WinGet returned non-zero code {returncode} , this might be a flaw in itself. (WinGet返回值不为0, 这可能是WinGet本身的缺陷)")
+                input(f"{INFO}Press enter to continue (按回车继续)")
         
         self._refresh_env()
         print(f"{SUCCESS}Git installed successfully (Git安装成功)")
@@ -437,4 +445,3 @@ if __name__ == "__main__":
     subprocess.run(["npx", "openclaw", "onboard"])
     input("Press any key to continue...")
     sys.exit(0)
-    
