@@ -141,20 +141,20 @@ class OpenClawInstall(object):
         if not os.path.exists(app_folder):
             os.makedirs(app_folder)
         
-        lnk_path = '"' + os.path.join(app_folder, f"{app_name}.lnk") + '"'
-        lnk = pylnk3.Lnk()
+        lnk_path = os.path.join(app_folder, f"{app_name}.lnk")
         
-        lnk.path = target_exe
+        lnk = pylnk3.for_file(target_exe)
+        
         lnk.arguments = args
         lnk.work_dir = os.path.dirname(target_exe)
         lnk.description = f"Launch {app_name}"
+        
         system_root = os.environ.get("SystemRoot", r"C:\Windows")
         lnk.icon = os.path.join(system_root, "System32", "imageres.dll")
         lnk.icon_index = 67
 
-        lnk.link_flags.set_flags('RunAsUser')
-        lnk.link_flags.set_flags('HasExpString')
-
+        lnk.link_flags.RunAsUser = True 
+        
         lnk.save(lnk_path)
         
     def install_nvm_legacy(self) -> bool:
@@ -207,7 +207,7 @@ class OpenClawInstall(object):
             case -1978335212: ...
             case 3010: ...
             case _ as returncode:
-                print(f"{WARN}The WinGet returned non-zero code {returncode} , this might be a flaw in itself. (WinGet返回值不为0, 这可能是WinGet本身的缺陷)")
+                print(f"{WARN}The WinGet returned non-zero code {returncode} , this might be a flaw in WinGet itself. (WinGet返回值不为0, 这可能是WinGet本身的缺陷)")
                 input(f"{INFO}Press enter to continue (按回车继续)")
         self._refresh_env()
         print(f"{SUCCESS}NVM installed successfully (NVM安装成功)")
@@ -338,7 +338,7 @@ class OpenClawInstall(object):
         print(f"{INFO}The dawn of victory is at hand (胜利的曙光即将到来)")
         print(f"{INFO}Please select a package manager (请选择包管理器):")
         print(f"""
-{Fore.CYAN}1. CNPM (Recommended for Chinese users) {Fore.LIGHTBLACK_EX}[中国用户推荐使用]
+{Fore.CYAN}1. CNPM (Recommended for Chinese users) {Fore.LIGHTBLACK_EX}[国内用户推荐使用]
 {Fore.CYAN}2. PNPM (💡Recommended)
 {Fore.CYAN}3. NPM (Legacy){Fore.RESET}
         """)
@@ -362,7 +362,7 @@ class OpenClawInstall(object):
                 try:
                     subprocess.run(["cnpm", "install", "-g", "openclaw@latest"], shell=True, text=True, check=True)
                     with open(os.path.join(os.environ["USERPROFILE"], "Desktop", "OpenClaw.cmd"), "w") as f:
-                        f.write("@echo off & npx openclaw dashboard")
+                        f.write("@echo off & openclaw dashboard")
                         
                 except Exception:
                     print(f"{ERROR}Failed to install OpenClaw (安装OpenClaw失败)")
@@ -372,13 +372,21 @@ class OpenClawInstall(object):
             case 2:
                 try:
                     subprocess.run(["npm", "install", "pnpm", "-g"], shell=True, text=True, check=True, stdout=subprocess.DEVNULL)
+                    os.makedirs(os.path.join(os.environ["LOCALAPPDATA"], "pnpm"), exist_ok=True)
+                    subprocess.run(["pnpm", "config", "set", "global-bin-dir", os.path.join(os.environ["LOCALAPPDATA"], "pnpm")], shell=True, text=True, check=True, stdout=subprocess.DEVNULL)
+                    self._refresh_env()
+                    subprocess.run(["pnpm", "setup"], shell=True, text=True, check=True, stdout=subprocess.DEVNULL)
+                    os.environ["PNPM_HOME"] = os.path.join(os.environ["LOCALAPPDATA"], "pnpm")
+                    if not os.environ["PATH"].endswith(';'): os.environ["PATH"] += ';'
+                    os.environ["PATH"] += os.path.join(os.environ["LOCALAPPDATA"], "pnpm")
+
                 except Exception:
                     print(f"{ERROR}Failed to install PNPM (安装PNPM失败)")
                     return False
                 try:
-                    subprocess.run(["pnpm", "install", "-g", "openclaw@latest"], shell=True, text=True, check=True)
+                    subprocess.run(["pnpm", "add", "-g", "openclaw@latest"], shell=True, text=True, check=True)
                     with open(os.path.join(os.environ["USERPROFILE"], "Desktop", "OpenClaw.cmd"), "w") as f:
-                        f.write("@echo off & npx openclaw dashboard")
+                        f.write("@echo off & openclaw dashboard")
                         
                 except Exception:
                     print(f"{ERROR}Failed to install OpenClaw (安装OpenClaw失败)")
@@ -389,7 +397,7 @@ class OpenClawInstall(object):
                 try:
                     subprocess.run(["npm", "install", "-g", "openclaw@latest"], shell=True, text=True, check=True)
                     with open(os.path.join(os.environ["USERPROFILE"], "Desktop", "OpenClaw.cmd"), "w") as f:
-                        f.write("@echo off & npx openclaw dashboard")
+                        f.write("@echo off & openclaw dashboard")
                         
                 except Exception:
                     print(f"{ERROR}Failed to install OpenClaw (安装OpenClaw失败)")
@@ -464,11 +472,28 @@ class OpenClawInstall(object):
             
         os.makedirs(os.path.join(os.environ["APPDATA"], "OpenClaw"), exist_ok=True)
         with open(os.path.join(os.environ["APPDATA"], "OpenClaw", "gateway.ps1"), "w", encoding="utf-8") as f:
-            f.write('Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process\r\n. npx.ps1 openclaw gateway')
+            f.write('Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process\r\n. openclaw.ps1 gateway')
             self.add_to_startup("OpenClawGateway", "powershell.exe -ExecutionPolicy Bypass -WindowStyle Hidden -File \"" + os.path.join(os.environ["APPDATA"], "OpenClaw", "gateway.ps1") + "\"")
-            self.create_start_menu_pylnk("OpenClaw", "OpenClaw Gateway", "powershell.exe", f'-ExecutionPolicy Bypass -File "{os.path.join(os.environ["APPDATA"], "OpenClaw", "gateway.ps1")}"')
-            self.create_start_menu_pylnk("OpenClaw", "OpenClaw Dashboard", "powershell.exe", "-ExecutionPolicy Bypass -WindowStyle Hidden -File npx.ps1 openclaw dashboard")
+            powershell_path = subprocess.run(["cmd.exe", "/c", "where", "powershell.exe"], shell=False, text=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL).stdout.strip().splitlines()[0]
+            oc_path = subprocess.run(["cmd", "/c", "where", "openclaw.ps1"], shell=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL).stdout.strip().splitlines()[0]
+            i: str = input(f"{INFO}Do you want to create a icon in the Start Menu (no | yes/y/a) {Fore.LIGHTBLACK_EX}[是否要在开始菜单创建图标? 可能会报毒, 请手动添加白名单 我们保证该操作无毒, 若不放心请跳过]{Fore.RESET}")
+            if i.strip().lower() in ['y', "yes", 'a', "yes/y/a"]:
+                self.create_start_menu_pylnk("OpenClaw", "OpenClaw Gateway", powershell_path, f'-ExecutionPolicy Bypass -File "{os.path.join(os.environ["APPDATA"], "OpenClaw", "gateway.ps1")}"')
+                self.create_start_menu_pylnk("OpenClaw", "OpenClaw Dashboard", powershell_path, f"-ExecutionPolicy Bypass -WindowStyle Hidden -File {oc_path} dashboard")
+            print(f"\n{INFO}Preparing start OpenClaw setup (正在准备启动OpenClaw配置)\n{INFO}Use up/down/right/left to select, enter to choose (使用键盘上下左右来选择, 回车选中) ")
+            print(f"{INFO}The first selection please choose 'Yes' (Agree) {Fore.LIGHTBLACK_EX}[第一个选项为用户协议, 请选择Yes以同意使用OpenClaw]{Fore.RESET}")
+            print(f"{INFO}In skill selection, please select 'model-usage' {Fore.LIGHTBLACK_EX}[在让你选择Skill(技能)时, 请选上model-usage]{Fore.RESET}")
+            print(f"{INFO}After finish this, please press Ctrl+C to continue (配置提示完成后, 请按Ctrl+C继续)")
+            print(f"{Fore.LIGHTBLACK_EX}[若有任何问题, 请使用翻译软件]{Fore.RESET}")
+            while True:
+                print(f"Type 'next' to continue (若你已悉知, 请输入next继续)")
+                _: str = input().replace('\'', '')
+                if not _.lower().strip() == "next":
+                    continue
+                else:
+                    break
             
+
 def is_path_like(s):
     try:
         p = PurePath(s)
@@ -490,6 +515,6 @@ if __name__ == "__main__":
     init(autoreset=True, convert=True)
     openclaw_installer = OpenClawInstall(path)
     openclaw_installer.install_openclaw()
-    subprocess.run(["npx", "openclaw", "onboard"])
-    input("Press any key to continue...")
+    subprocess.run(["openclaw", "onboard"], shell=True, text=True)
+    input("OpenClaw is ready. Run 'openclaw gateway' and 'openclaw dashboard' to launch\nPress any key to continue...")
     sys.exit(0)
