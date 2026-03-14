@@ -1,4 +1,4 @@
 requests
 colorama
-pylnk3
 charset-normalizer
+pylnk3  # Windows-only, will be installed conditionally

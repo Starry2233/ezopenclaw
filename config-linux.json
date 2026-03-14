@@ -1,0 +1,5 @@
+{
+    "nvm_url": "https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh",
+    "nodejs_url": "https://nodejs.org/dist/v24.14.0/node-v24.14.0-linux-x64.tar.xz",
+    "git_url": "https://github.com/git/git/archive/refs/tags/v2.53.0.tar.gz"
+}
