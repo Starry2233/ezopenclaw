@@ -2,7 +2,7 @@
 # by Starry2233, DO NOT remove this file
 
 a = Analysis(
-    ['src\\main.py'],
+    ['src/main.py'],
     pathex=[],
     binaries=[],
     datas=[],

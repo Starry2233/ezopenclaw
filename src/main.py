@@ -676,12 +676,16 @@ nvm alias default node
         match pm:
             case 1:
                 try:
-                    subprocess.run(["npm", "install", "cnpm", "-g"], shell=True, text=True, check=True, stdout=subprocess.DEVNULL)
+                    
+                    shell_arg = PlatformDetector.is_windows()
+                    subprocess.run(["npm", "install", "cnpm", "-g"], shell=shell_arg, text=True, check=True, stdout=subprocess.DEVNULL)
                 except Exception:
                     print(f"{ERROR}Failed to install CNPM (安装CNPM失败)")
                     return False
                 try:
-                    subprocess.run(["cnpm", "install", "-g", "openclaw@latest"], shell=True, text=True, check=True)
+                    
+                    shell_arg = PlatformDetector.is_windows()
+                    subprocess.run(["cnpm", "install", "-g", "openclaw@latest"], shell=shell_arg, text=True, check=True)
                     if PlatformDetector.is_windows():
                         with open(os.path.join(os.environ["USERPROFILE"], "Desktop", "OpenClaw.cmd"), "w") as f:
                             f.write("@echo off & openclaw dashboard")
@@ -708,23 +712,30 @@ Terminal=false
                 return True
             case 2:
                 try:
-                    subprocess.run(["npm", "install", "pnpm", "-g"], shell=True, text=True, check=True, stdout=subprocess.DEVNULL)
+                    
+                    shell_arg = PlatformDetector.is_windows()
+                    subprocess.run(["npm", "install", "pnpm", "-g"], shell=shell_arg, text=True, check=True, stdout=subprocess.DEVNULL)
                     if PlatformDetector.is_linux():
                         pnpm_home = os.path.join(os.path.expanduser("~"), ".local", "share", "pnpm")
                         os.makedirs(pnpm_home, exist_ok=True)
-                        subprocess.run(["pnpm", "config", "set", "global-bin-dir", pnpm_home], shell=True, text=True, check=True, stdout=subprocess.DEVNULL)
+                        # ✅ Linux: shell=False (explicit)
+                        subprocess.run(["pnpm", "config", "set", "global-bin-dir", pnpm_home], shell=False, text=True, check=True, stdout=subprocess.DEVNULL)
                         # Add to PATH
                         shell_rc = os.path.join(os.path.expanduser("~"), ".bashrc")
                         if os.path.exists(shell_rc):
                             with open(shell_rc, "a") as f:
                                 f.write(f'\nexport PATH="$HOME/.local/share/pnpm:$PATH"\n')
                     self._refresh_env()
-                    subprocess.run(["pnpm", "setup"], shell=True, text=True, check=True, stdout=subprocess.DEVNULL)
+                    
+                    shell_arg = PlatformDetector.is_windows()
+                    subprocess.run(["pnpm", "setup"], shell=shell_arg, text=True, check=True, stdout=subprocess.DEVNULL)
                 except Exception:
                     print(f"{ERROR}Failed to install PNPM (安装PNPM失败)")
                     return False
                 try:
-                    subprocess.run(["pnpm", "add", "-g", "openclaw@latest"], shell=True, text=True, check=True)
+                    
+                    shell_arg = PlatformDetector.is_windows()
+                    subprocess.run(["pnpm", "add", "-g", "openclaw@latest"], shell=shell_arg, text=True, check=True)
                     if PlatformDetector.is_windows():
                         with open(os.path.join(os.environ["USERPROFILE"], "Desktop", "OpenClaw.cmd"), "w") as f:
                             f.write("@echo off & openclaw dashboard")
@@ -750,7 +761,9 @@ Terminal=false
                 return True
             case 3:
                 try:
-                    subprocess.run(["npm", "install", "-g", "openclaw@latest"], shell=True, text=True, check=True)
+                    
+                    shell_arg = PlatformDetector.is_windows()
+                    subprocess.run(["npm", "install", "-g", "openclaw@latest"], shell=shell_arg, text=True, check=True)
                     if PlatformDetector.is_windows():
                         with open(os.path.join(os.environ["USERPROFILE"], "Desktop", "OpenClaw.cmd"), "w") as f:
                             f.write("@echo off & openclaw dashboard")
@@ -888,8 +901,8 @@ Terminal=false
                 f.write('Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process\r\n. openclaw.ps1 gateway')
                 self.add_to_startup("OpenClawGateway", "powershell.exe -ExecutionPolicy Bypass -WindowStyle Hidden -File \"" + os.path.join(os.environ["APPDATA"], "OpenClaw", "gateway.ps1") + "\"")
                 self._refresh_env()
-                powershell_path = subprocess.run(["where", "powershell.exe"], shell=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL).stdout.strip().splitlines()[0]
-                oc_path = subprocess.run(["where", "openclaw.ps1"], shell=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL).stdout.strip().splitlines()[0]
+                powershell_path = subprocess.run(["cmd.exe", "/c", "where", "powershell.exe"], shell=False, text=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL).stdout.strip().splitlines()[0]
+                oc_path = subprocess.run(["cmd", "/c", "where", "openclaw.ps1"], shell=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL).stdout.strip().splitlines()[0]
                 i: str = input(f"{INFO}Do you want to create a icon in the Start Menu (no | yes/y/a) {Fore.LIGHTBLACK_EX}[是否要在开始菜单创建图标? 可能会报毒, 请手动添加白名单 我们保证该操作无毒, 若不放心请跳过]{Fore.RESET}")
                 if i.strip().lower() in ['y', "yes", 'a', "yes/y/a"]:
                     self.create_start_menu_pylnk("OpenClaw", "OpenClaw Gateway", powershell_path, f'-ExecutionPolicy Bypass -File "{os.path.join(os.environ["APPDATA"], "OpenClaw", "gateway.ps1")}"')
@@ -978,7 +991,7 @@ if __name__ == "__main__":
     
     try:
         openclaw_installer.install_openclaw()
-        subprocess.run(["openclaw", "onboard"], shell=True, text=True)
+        subprocess.run(["openclaw", "onboard"], shell=False, text=True)
     finally:
         openclaw_installer.cleanup_temp_files()
     
