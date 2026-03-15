@@ -10,7 +10,7 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=['tkinter', 'tcl', 'this', '_tkinter', 'idlelib', 'pydoc', 'unittest'],
+    excludes=['tkinter', 'tcl', 'this', '_tkinter', 'idlelib', 'pydoc', 'unittest', 'setuptools'],
     noarchive=False,
     optimize=2,
 )
